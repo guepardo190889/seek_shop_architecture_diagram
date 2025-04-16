@@ -1,2 +1,2 @@
 # seek_shop_architecture_diagram
-Diagrama de arquitectura de la prueba técnica en Seek
+Código de los diagramas de arquitectura y flujo de la prueba técnica en Seek
