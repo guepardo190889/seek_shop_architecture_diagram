@@ -1,0 +1,20 @@
+flowchart LR
+    A1[Cliente App/Web] --> A2[Identity Platform]
+    A2 --> A3[API Gateway]
+    A3 --> A4[Servicio de Compras]
+    A4 --> A5[Iniciar proceso en Camunda BPMN]
+
+    %% Proceso BPMN
+    subgraph Camunda BPMN
+        B1[Verificar producto] --> B2[Verificar inventario]
+        B2 --> B3[Procesar pago]
+        B3 --> B4[Generar pedido]
+        B4 --> B5[Enviar notificación]
+    end
+
+    %% Microservicios
+    B1 --> M1[Microservicio Productos]
+    B2 --> M2[Microservicio Inventarios]
+    B3 --> M3[Microservicio Pagos]
+    B4 --> M4[Microservicio Pedidos]
+    B5 --> M5[Microservicio Notificaciones]
