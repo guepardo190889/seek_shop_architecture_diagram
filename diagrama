@@ -1,0 +1,172 @@
+|---
+config:
+  theme: neo-dark
+---
+architecture-beta
+    %% Grupos externos
+    group portal(cloud)[Seek Shop Portal Web]
+        service spa_portal(cloud)[Portal] in portal
+
+    group app(cloud)[Seek Shop Aplicacion Movil]
+        service android_app(cloud)[App] in app
+
+    group firebase(cloud)[Firebase]
+        service firebase_cloud_messaging(server)[Firebase Cloud Messaging] in firebase
+
+    group github(cloud)[GitHub]
+        service github_repositorio_privado(server)[Repositorio privado de Github] in github
+
+    group on_premise_legacy(cloud)[On Premise System]
+        group on_premise_facturacion(server)[Servicio de Facturacion Legacy] in on_premise_legacy
+            service api_facturacion(server)[Servicio de Facturacion] in on_premise_facturacion
+            service facturacion_odb(database)[Base de datos de Facturacion] in on_premise_facturacion
+
+    group gcp(cloud)[Google Cloud Platform]
+        group seek_shop_vpc(cloud)[Seek Shop VPC] in gcp
+            group microservicio_usuarios(cloud)[Microservicio de Usuarios] in seek_shop_vpc
+                service api_usuarios(server)[Servicio de Usuarios] in microservicio_usuarios
+                service usuarios_db(database)[Base de datos de Usuarios] in microservicio_usuarios
+
+            group microservicio_productos(cloud)[Microservicio de Productos] in seek_shop_vpc
+                service api_productos(server)[Servicio de Productos] in microservicio_productos
+                service productos_db(database)[Base de datos de Productos] in microservicio_productos
+                service productos_mdb(database)[Base de datos Mongo DB de productos] in microservicio_productos
+
+            group microservicio_inventarios(cloud)[Microservicio de Inventarios] in seek_shop_vpc
+                service api_inventarios(server)[Servicio de Inventarios] in microservicio_inventarios
+                service inventarios_db(database)[Base de datos de Inventarios] in microservicio_inventarios
+
+            group microservicio_pedidos(cloud)[Microservicio de Pedidos] in seek_shop_vpc
+                service api_pedidos(server)[Servicio de Pedidos] in microservicio_pedidos
+                service pedidos_db(database)[Base de datos de Pedidos] in microservicio_pedidos
+
+            group microservicio_pagos(cloud)[Microservicio de Pagos] in seek_shop_vpc
+                service api_pagos(server)[Servicio de Pagos] in microservicio_pagos
+                service pagos_db(database)[Base de datos de Pagos] in microservicio_pagos
+
+            group microservicio_notificaciones(cloud)[Microservicio de Notificaciones] in seek_shop_vpc
+                service api_notificaciones(server)[Servicio de Notificaciones] in microservicio_notificaciones
+                service notificaciones_db(database)[Base de datos de Notificaciones] in microservicio_notificaciones
+                service notificaciones_mdb(database)[Base de datos Mongo DB de notificaciones] in microservicio_notificaciones
+
+            group camunda(cloud)[Camunda] in seek_shop_vpc
+                service bpmn_camunda(server)[BPMN Camunda] in camunda
+                service bpmn_camunda_pdb(database)[Base de datos de Camunda] in camunda
+
+            service api_compras(server)[Servicio de Compras] in seek_shop_vpc
+            service spring_cloud_config_server(server)[Spring Cloud Config Server] in seek_shop_vpc
+            service redis(server)[Redis] in seek_shop_vpc
+
+        service apigateway(cloud)[API Gateway] in gcp
+        service identity_platform(cloud)[Identity Platform] in gcp
+        service secure_token(cloud)[Secure Token] in gcp
+        service service_directory(cloud)[Service Directory] in gcp
+        service secret_manager(cloud)[Secret Manager] in gcp
+        service store_docker(cloud)[Store Docker] in gcp
+        service cloud_build(cloud)[Cloud Build] in gcp
+        service cloud_load_balancer(cloud)[Balanceador de Carga] in gcp
+        service cloud_nat(cloud)[Cloud NAT] in gcp
+        service observability(cloud)[Observabilidad] in gcp
+
+    %% Relaciones
+    spa_portal:R -- L:identity_platform
+    spa_portal:B -- T:apigateway
+
+    android_app:R -- L:identity_platform
+    android_app:B -- T:apigateway
+    android_app:T -- B:firebase_cloud_messaging
+
+    apigateway:R -- L:identity_platform
+    apigateway:R -- L:cloud_load_balancer
+
+    cloud_load_balancer:R -- L:api_usuarios
+    cloud_load_balancer:R -- L:api_productos
+    cloud_load_balancer:R -- L:api_inventarios
+    cloud_load_balancer:R -- L:api_pedidos
+    cloud_load_balancer:R -- L:api_pagos
+    cloud_load_balancer:R -- L:api_notificaciones
+    cloud_load_balancer:R -- L:api_compras
+
+    spring_cloud_config_server:T -- B:secret_manager
+
+    junction j_usuarios in microservicio_usuarios
+    api_usuarios:R -- L:j_usuarios
+    j_usuarios:T -- B:spring_cloud_config_server
+    j_usuarios:R -- L:redis
+    j_usuarios:B -- T:service_directory
+    j_usuarios:L -- R:secure_token
+    api_usuarios:B -- T:usuarios_db
+
+    junction j_productos in microservicio_productos
+    api_productos:R -- L:j_productos
+    j_productos:T -- B:spring_cloud_config_server
+    j_productos:R -- L:redis
+    j_productos:B -- T:service_directory
+    j_productos:L -- R:secure_token
+    api_productos:B -- T:productos_db
+    api_productos:B -- T:productos_mdb
+
+    junction j_inventarios in microservicio_inventarios
+    api_inventarios:R -- L:j_inventarios
+    j_inventarios:T -- B:spring_cloud_config_server
+    j_inventarios:R -- L:redis
+    j_inventarios:B -- T:service_directory
+    j_inventarios:L -- R:secure_token
+    api_inventarios:B -- T:inventarios_db
+
+    junction j_pedidos in microservicio_pedidos
+    api_pedidos:R -- L:j_pedidos
+    j_pedidos:T -- B:spring_cloud_config_server
+    j_pedidos:R -- L:redis
+    j_pedidos:B -- T:service_directory
+    j_pedidos:L -- R:secure_token
+    api_pedidos:B -- T:pedidos_db
+
+    junction j_pagos in microservicio_pagos
+    api_pagos:R -- L:j_pagos
+    j_pagos:T -- B:spring_cloud_config_server
+    j_pagos:R -- L:redis
+    j_pagos:B -- T:service_directory
+    j_pagos:L -- R:secure_token
+    api_pagos:B -- T:pagos_db
+
+    junction j_notificaciones in microservicio_notificaciones
+    api_notificaciones:R -- L:j_notificaciones
+    j_notificaciones:T -- B:spring_cloud_config_server
+    j_notificaciones:R -- L:redis
+    j_notificaciones:B -- T:service_directory
+    j_notificaciones:L -- R:secure_token
+    api_notificaciones:B -- T:notificaciones_db
+    api_notificaciones:B -- T:notificaciones_mdb
+    api_notificaciones:B -- T:cloud_nat
+
+    api_compras:B -- T:bpmn_camunda
+
+    bpmn_camunda:B -- T:api_productos
+    bpmn_camunda:B -- T:api_inventarios
+    bpmn_camunda:B -- T:api_pedidos
+    bpmn_camunda:B -- T:api_pagos
+    bpmn_camunda:B -- T:api_notificaciones
+    bpmn_camunda:B -- T:api_facturacion
+    bpmn_camunda:R -- L:bpmn_camunda_pdb
+
+    api_facturacion:B -- T:facturacion_odb
+
+    github_repositorio_privado:R -- L:cloud_build
+    cloud_build:B -- T:store_docker
+    cloud_build:B -- T:api_usuarios
+    cloud_build:B -- T:api_productos
+    cloud_build:B -- T:api_inventarios
+    cloud_build:B -- T:api_pedidos
+    cloud_build:B -- T:api_pagos
+    cloud_build:B -- T:api_notificaciones
+
+    observability:T -- B:api_usuarios
+    observability:T -- B:api_productos
+    observability:T -- B:api_inventarios
+    observability:T -- B:api_pedidos
+    observability:T -- B:api_pagos
+    observability:T -- B:api_notificaciones
+    observability:T -- B:bpmn_camunda
+
+    cloud_nat:B -- T:firebase_cloud_messaging
